@@ -1,0 +1,84 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum IdentityMode {
+  SSO
+  MAGIC_LINK
+}
+
+model Event {
+  id                Int          @id @default(1)
+  nRecipients       Int
+  minAmount         Int
+  maxAmount         Int
+  avgTarget         Int
+  avgTolerance      Float        @default(0.1)
+  roundTo           Int
+  enableLeaderboard Boolean      @default(true)
+  leaderboardSize   Int          @default(10)
+  mode              IdentityMode @default(MAGIC_LINK)
+  maskName          Boolean      @default(false)
+  shareAmount       Boolean      @default(false)
+  status            String       @default("draft")
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+  envelopes         Envelope[]
+  participants      Participant[]
+}
+
+model Participant {
+  id          Int      @id @default(autoincrement())
+  uniqueId    String   @unique
+  displayName String
+  email       String?
+  token       String?  @unique
+  usedAt      DateTime?
+  eventId     Int
+  event       Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  receipt     Receipt?
+  createdAt   DateTime @default(now())
+}
+
+model Envelope {
+  id          Int      @id @default(autoincrement())
+  amount      Int
+  claimedById Int?     @unique
+  claimedBy   Participant? @relation(fields: [claimedById], references: [id])
+  eventId     Int
+  event       Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+}
+
+model Receipt {
+  id            Int         @id @default(autoincrement())
+  participantId Int         @unique
+  participant   Participant @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  envelopeId    Int         @unique
+  envelope      Envelope    @relation(fields: [envelopeId], references: [id], onDelete: Cascade)
+  amount        Int
+  motto         String
+  title         String
+  createdAt     DateTime    @default(now())
+}
+
+model AdminSession {
+  id        Int      @id @default(autoincrement())
+  token     String   @unique
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+}
+
+model ClaimLog {
+  id        Int      @id @default(autoincrement())
+  key       String
+  count     Int      @default(1)
+  windowAt  DateTime
+
+  @@unique([key, windowAt])
+}
