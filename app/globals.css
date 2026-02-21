@@ -1,0 +1,15 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  @apply bg-rose-50 text-slate-900;
+}
+
+.card {
+  @apply rounded-2xl bg-white/90 shadow-lg border border-rose-100;
+}
+
+.btn-primary {
+  @apply rounded-xl bg-gradient-to-r from-red-600 to-rose-500 px-4 py-2 font-semibold text-white shadow hover:opacity-95 disabled:opacity-60;
+}
